@@ -1,9 +1,23 @@
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <windows.networking.sockets.h>
 #pragma comment(lib, "Ws2_32.lib")
 
 #include <fstream>
 #include <string>
 #include "Packet.h"
+
+// Function to receive unique ID from the server
+std::string receiveUniqueID(SOCKET clientSocket) 
+{
+	char buffer[256];
+	int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
+	if (bytesReceived > 0) {
+		buffer[bytesReceived] = '\0';
+		return std::string(buffer);
+	}
+	return ""; 
+}
 
 int main(int argc, char* argv[])
 {
@@ -35,6 +49,7 @@ int main(int argc, char* argv[])
 	SvrAddr.sin_addr.s_addr = inet_addr(ipAddress);	//IP address
 
 	std::string InputStr = "";
+	std::string uniqueID = receiveUniqueID(ClientSocket);
 	Packet newPkt;
 
 	std::ifstream f("Telem_2023_3_12 16_26_4.txt");
@@ -47,8 +62,8 @@ int main(int argc, char* argv[])
 			std::string timeData = InputStr.substr(0, pos);
 			std::string fuelData = InputStr.substr(pos + 1, InputStr.length() - pos - 3);
 
-			// Set time and fuel data for the packet
-			newPkt.SetData((char*)timeData.c_str(), (char*)fuelData.c_str(), timeData.length(), fuelData.length());
+			// Set id,time, fuel data for the packet
+			newPkt.SetData((char*)timeData.c_str(), (char*)fuelData.c_str(), (char*)uniqueID.c_str(), timeData.length(), fuelData.length(), uniqueID.length());
 
 			int Size = 0;
 			char* Tx = newPkt.SerializeData(Size);

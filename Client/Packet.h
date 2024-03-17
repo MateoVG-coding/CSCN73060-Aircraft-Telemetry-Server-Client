@@ -9,7 +9,7 @@ class Packet
 {
     struct Header
     {
-        unsigned char Source : 4; //Airplane ID
+        char* Source; //Airplane ID
         unsigned char TimeLength;
         unsigned char FuelLength;
     } Head;
@@ -21,12 +21,11 @@ class Packet
 
 public:
     // Default constructor
-    Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head)); Head.Source = 2; }
+    Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head));  Head.Source = nullptr; }
 
     void Display(std::ostream& os)
     {
-        os << std::dec;
-        os << "Source:  " << (int)Head.Source << std::endl;
+        os << "Source:  " << Head.Source << std::endl;
         os << "Length Time:  " << (int)Head.TimeLength << std::endl;
         os << "Time:     " << TimeField << std::endl;
         os << "Length Fuel:  " << (int)Head.FuelLength << std::endl;
@@ -54,26 +53,30 @@ public:
     }
 
     // Method to set data and update header
-    void SetData(char* srcTime, char* srcFuel, int timeSize, int fuelSize) 
+    void SetData(char* srcTime, char* srcFuel, char* srcId,  int timeSize, int fuelSize, int idSize) 
     {
-        if (TimeField || FuelField)
+        if (TimeField || FuelField || Head.Source)
         {
             delete[] TimeField;
             delete[] FuelField;
+            delete[] Head.Source;
         }
 
         // Update header
         Head.TimeLength = timeSize;
         Head.FuelLength = fuelSize;
 
-        // Allocate memory for time and fuel fields
+        // Allocate memory for id, time and fuel fields
+        Head.Source = new char[idSize + 1];
         TimeField = new char[timeSize + 1]; 
         FuelField = new char[fuelSize + 1]; 
 
+        Head.Source[idSize] = '\0';
         TimeField[timeSize] = '\0';
         FuelField[fuelSize] = '\0';
 
         // Copy data from source buffers
+        memcpy(Head.Source, srcId, idSize);
         memcpy(TimeField, srcTime, timeSize);
         memcpy(FuelField, srcFuel, fuelSize);
     }
