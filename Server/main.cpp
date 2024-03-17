@@ -18,6 +18,9 @@ int main() {
         return 1;
     }
 
+    // Load existing plane data into planeDataMap
+    loadPlaneData(planeDataMap);
+
     // Bind the socket
     sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
