@@ -27,10 +27,10 @@ public:
     unsigned char getPlaneID() const {
         return Head.Source;
     }
-    const char* getTimeField() const {
+    const char* getPreviousFuel() const {
         return TimeField;
     }
-    const char* getFuelField() const {
+    const char* getCurrentFuel() const {
         return FuelField;
     }
     // Destructor to release memory

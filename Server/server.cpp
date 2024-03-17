@@ -35,9 +35,9 @@ void handleClient(SOCKET clientSocket) {
 
             // Calculate fuel consumption rate
             float elapsedTime = 0;
-            char* timeField = const_cast<char*>(receivedPacket.getTimeField());
-            char* fuelField = const_cast<char*>(receivedPacket.getFuelField());
-            float fuelConsumptionRate = calculateFuelConsumption(timeField, fuelField, elapsedTime);
+            char* previousFuel = const_cast<char*>(receivedPacket.getPreviousFuel());
+            char* currentFuel = const_cast<char*>(receivedPacket.getCurrentFuel());
+            float fuelConsumptionRate = calculateFuelConsumption(previousFuel, currentFuel, elapsedTime);
             
             // Check if planeID already exists in the map
             if (planeDataMap.find(planeIDString) == planeDataMap.end()) {
