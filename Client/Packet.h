@@ -86,7 +86,7 @@ public:
         if (TxBuffer)
             delete[] TxBuffer;
 
-        TotalSize = EmptyPktSize + Head.TimeLength + Head.FuelLength;
+        TotalSize = sizeof(Header) + Head.TimeLength + Head.FuelLength;
 
         TxBuffer = new char[TotalSize];
 
