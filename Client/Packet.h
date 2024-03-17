@@ -23,6 +23,22 @@ public:
     // Default constructor
     Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head)); Head.Source = 2; }
 
+    // Function to get the plane ID, TimeField, FuelField and elapsedTime
+    unsigned char getPlaneID() const {
+        return Head.Source;
+    }
+    const char* getTimeField() const {
+        return TimeField;
+    }
+    const char* getFuelField() const {
+        return FuelField;
+    }
+    // Destructor to release memory
+    ~Packet() {
+        delete[] TimeField;
+        delete[] FuelField;
+    }
+
     void Display(std::ostream& os)
     {
         os << std::dec;
