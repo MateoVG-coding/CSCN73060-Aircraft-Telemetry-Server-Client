@@ -23,15 +23,19 @@ public:
     // Default constructor
     Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head)); Head.Source = 2; }
 
-    // Function to get the plane ID and currentFuel
+    // Function to get the plane ID, currentFuel and currentTime
     unsigned char getPlaneID() const {
         return Head.Source;
     }
     const char* getCurrentFuel() const {
         return FuelField;
     }
+    const char* getCurrentTime() const {
+        return TimeField;
+    }
     // Destructor to release memory
     ~Packet() {
+        delete[] TimeField;
         delete[] FuelField;
     }
 

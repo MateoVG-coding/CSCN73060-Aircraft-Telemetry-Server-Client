@@ -3,7 +3,7 @@
 // Define a map to store PlaneData objects using the plane ID
 std::map<std::string, PlaneData> planeDataMap;
 // Previous fuel level and timestamp for each plane, using planeID as key
-std::map<std::string, std::pair<std::string, std::chrono::steady_clock::time_point>> previousData;
+std::map<std::string, std::pair<std::string, std::chrono::system_clock::time_point>> previousData;
 
 //Save & load data
 void writePlaneData(const std::map<std::string, PlaneData>& planeDataMap) {
@@ -23,6 +23,17 @@ void loadPlaneData(std::map<std::string, PlaneData>& planeDataMap) {
         planeDataMap[planeID] = data;
     }
     inFile.close();
+}
+
+std::chrono::system_clock::time_point parseTimestamp(const std::string& timestamp) {
+    // Convert the timestamp string to a time structure
+    std::tm tm = {};
+    std::istringstream ss(timestamp);
+    ss >> std::get_time(&tm, "%H:%M:%S");
+
+    // Convert the time structure to a system_clock::time_point
+    std::time_t time = std::mktime(&tm);
+    return std::chrono::system_clock::from_time_t(time);
 }
 
 void handleClient(SOCKET clientSocket) {
@@ -45,13 +56,16 @@ void handleClient(SOCKET clientSocket) {
             std::string planeIDString = std::to_string(receivedPacket.getPlaneID());
             std::string currentFuel = const_cast<char*>(receivedPacket.getCurrentFuel());
             
-            auto now = std::chrono::steady_clock::now();
+            // Get the timestamp from the received packet
+            const char* timestampString = receivedPacket.getCurrentTime();
+            std::chrono::system_clock::time_point currentTime = parseTimestamp(timestampString);
 
             // Check if this is the first packet for the plane
             if (previousData.find(planeIDString) != previousData.end()) {
                 std::string previousFuel = previousData[planeIDString].first;
                 auto previousTime = previousData[planeIDString].second;
-                auto elapsedTime = std::chrono::duration_cast<std::chrono::seconds>(now - previousTime).count() / 3600.0f; // Convert to hours
+                auto elapsedTime = std::chrono::duration_cast<std::chrono::duration<float>>(currentTime - previousTime).count() / 3600.0f; // Convert to hours
+
 
                 // Calculate fuel consumption rate
                 if (elapsedTime > 0) {
@@ -70,7 +84,7 @@ void handleClient(SOCKET clientSocket) {
             }
 
             // Update previous data for the next calculation
-            previousData[planeIDString] = std::make_pair(currentFuel, now);
+            previousData[planeIDString] = std::make_pair(currentFuel, currentTime);
         }
     } while (bytesReceived > 0);
 

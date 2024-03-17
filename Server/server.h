@@ -5,9 +5,11 @@
 #include <vector>
 #include <winsock2.h>
 #include <map>
-#include <fstream>
 #include <chrono>
 #include <string>
+#include <ctime>
+#include <sstream>
+#include <iomanip>
 #include "../Client/Packet.h"
 
 #pragma comment(lib, "ws2_32.lib")
@@ -28,4 +30,5 @@ extern std::map<std::string, PlaneData> planeDataMap;
 //Prototypes
 void writePlaneData(const std::map<std::string, PlaneData>& planeDataMap);
 void loadPlaneData(std::map<std::string, PlaneData>& planeDataMap);
+std::chrono::system_clock::time_point parseTimestamp(const std::string& timestamp);
 float calculateFuelConsumption(char* previousFuel, char* currentFuel, float elapsedTime);
