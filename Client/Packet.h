@@ -9,22 +9,22 @@ class Packet
 {
     struct Header
     {
-        unsigned char Source : 4; //Airplane ID
+        char* Source; //Airplane ID
         unsigned char TimeLength;
         unsigned char FuelLength;
     } Head;
 
-    char* TimeField; 
+    char* TimeField;
     char* FuelField;
 
     char* TxBuffer;
 
 public:
     // Default constructor
-    Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head)); Head.Source = 2; }
+    Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head)); Head.Source = nullptr; }
 
     // Function to get the plane ID, currentFuel and currentTime
-    unsigned char getPlaneID() const {
+    char* getPlaneID() const {
         return Head.Source;
     }
     const char* getCurrentFuel() const {
@@ -37,6 +37,7 @@ public:
     ~Packet() {
         delete[] TimeField;
         delete[] FuelField;
+        delete[] Head.Source;
     }
 
     void Display(std::ostream& os)
@@ -58,7 +59,7 @@ public:
         int fuelSize = Head.FuelLength;
 
         // Allocate memory for time and fuel fields
-        TimeField = new char[timeSize + 1]; 
+        TimeField = new char[timeSize + 1];
         FuelField = new char[fuelSize + 1];
 
         TimeField[timeSize] = '\0';
@@ -70,26 +71,30 @@ public:
     }
 
     // Method to set data and update header
-    void SetData(char* srcTime, char* srcFuel, int timeSize, int fuelSize) 
+    void SetData(char* srcTime, char* srcFuel, char* srcId, int timeSize, int fuelSize, int idSize)
     {
-        if (TimeField || FuelField)
+        if (TimeField || FuelField || Head.Source)
         {
             delete[] TimeField;
             delete[] FuelField;
+            delete[] Head.Source;
         }
 
         // Update header
         Head.TimeLength = timeSize;
         Head.FuelLength = fuelSize;
 
-        // Allocate memory for time and fuel fields
-        TimeField = new char[timeSize + 1]; 
-        FuelField = new char[fuelSize + 1]; 
+        // Allocate memory for id, time and fuel fields
+        Head.Source = new char[idSize + 1];
+        TimeField = new char[timeSize + 1];
+        FuelField = new char[fuelSize + 1];
 
+        Head.Source[idSize] = '\0';
         TimeField[timeSize] = '\0';
         FuelField[fuelSize] = '\0';
 
         // Copy data from source buffers
+        memcpy(Head.Source, srcId, idSize);
         memcpy(TimeField, srcTime, timeSize);
         memcpy(FuelField, srcFuel, fuelSize);
     }

@@ -1,6 +1,6 @@
 #include "server.h"
 
-constexpr int PORT = 8080;
+constexpr int PORT = 27000;
 
 int main() {
     WSADATA wsaData;
@@ -25,7 +25,7 @@ int main() {
     sockaddr_in serverAddr;
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_addr.s_addr = INADDR_ANY; // Accept connections from any address
-    serverAddr.sin_port = htons(PORT); // Use port 8080
+    serverAddr.sin_port = htons(PORT); // Use port 27000
     if (bind(listenSocket, (SOCKADDR*)&serverAddr, sizeof(serverAddr)) == SOCKET_ERROR) {
         std::cerr << "bind failed with error: " << WSAGetLastError() << std::endl;
         closesocket(listenSocket);
@@ -41,7 +41,7 @@ int main() {
         return 1;
     }
 
-    std::cout << "Server listening on port 8080...\n";
+    std::cout << "Server listening on port 27000...\n";
 
     std::vector<std::thread> threads;
 

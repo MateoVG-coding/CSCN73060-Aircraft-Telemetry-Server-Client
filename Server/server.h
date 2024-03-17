@@ -1,5 +1,7 @@
 #pragma once
 
+#define _CRT_SECURE_NO_WARNINGS
+
 #include <iostream>
 #include <thread>
 #include <vector>
@@ -32,3 +34,4 @@ void writePlaneData(const std::map<std::string, PlaneData>& planeDataMap);
 void loadPlaneData(std::map<std::string, PlaneData>& planeDataMap);
 std::chrono::system_clock::time_point parseTimestamp(const std::string& timestamp);
 float calculateFuelConsumption(char* previousFuel, char* currentFuel, float elapsedTime);
+std::string generateUniqueID();
