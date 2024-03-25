@@ -3,8 +3,6 @@
 #include <iostream>
 #include <fstream>
 
-const int EmptyPktSize = 6; //Number of data bytes in a packet with no data field
-
 class Packet
 {
     struct Header
@@ -14,21 +12,37 @@ class Packet
         unsigned char FuelLength;
     } Head;
 
-    char* TimeField; 
+    char* TimeField;
     char* FuelField;
 
     char* TxBuffer;
 
 public:
     // Default constructor
-    Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head));  Head.Source = nullptr; }
+    Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head)); Head.Source = nullptr; }
+
+    // Function to get the plane ID, currentFuel and currentTime
+    char* getPlaneID() const {
+        return Head.Source;
+    }
+    const char* getCurrentFuel() const {
+        return FuelField;
+    }
+    const char* getCurrentTime() const {
+        return TimeField;
+    }
+    // Destructor to release memory
+    ~Packet() {
+        delete[] TimeField;
+        delete[] FuelField;
+        delete[] Head.Source;
+    }
 
     void Display(std::ostream& os)
     {
-        os << "Source:  " << Head.Source << std::endl;
-        os << "Length Time:  " << (int)Head.TimeLength << std::endl;
+        os << std::dec;
+        os << "Airplane ID:  " << Head.Source << std::endl;
         os << "Time:     " << TimeField << std::endl;
-        os << "Length Fuel:  " << (int)Head.FuelLength << std::endl;
         os << "Remaining Fuel:     " << FuelField << std::endl;
     }
 
@@ -41,7 +55,7 @@ public:
         int fuelSize = Head.FuelLength;
 
         // Allocate memory for time and fuel fields
-        TimeField = new char[timeSize + 1]; 
+        TimeField = new char[timeSize + 1];
         FuelField = new char[fuelSize + 1];
 
         TimeField[timeSize] = '\0';
@@ -53,7 +67,7 @@ public:
     }
 
     // Method to set data and update header
-    void SetData(char* srcTime, char* srcFuel, char* srcId,  int timeSize, int fuelSize, int idSize) 
+    void SetData(char* srcTime, char* srcFuel, char* srcId, int timeSize, int fuelSize, int idSize)
     {
         if (TimeField || FuelField || Head.Source)
         {
@@ -68,8 +82,8 @@ public:
 
         // Allocate memory for id, time and fuel fields
         Head.Source = new char[idSize + 1];
-        TimeField = new char[timeSize + 1]; 
-        FuelField = new char[fuelSize + 1]; 
+        TimeField = new char[timeSize + 1];
+        FuelField = new char[fuelSize + 1];
 
         Head.Source[idSize] = '\0';
         TimeField[timeSize] = '\0';
