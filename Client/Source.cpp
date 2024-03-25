@@ -6,17 +6,25 @@
 #include <fstream>
 #include <string>
 #include "Packet.h"
+#include <string>
+#include <ctime>
+#include <cstdlib>
+#include <sstream>
+#include <iomanip>
 
-// Function to receive unique ID from the server
-std::string receiveUniqueID(SOCKET clientSocket) 
-{
-	char buffer[256];
-	int bytesReceived = recv(clientSocket, buffer, sizeof(buffer), 0);
-	if (bytesReceived > 0) {
-		buffer[bytesReceived] = '\0';
-		return std::string(buffer);
-	}
-	return ""; 
+// Function to generate a unique ID for the client
+std::string generateUniqueID() {
+	// Generate a random uppercase letter
+	char randomLetter = 'A' + rand() % 26;
+
+	// Generate a timestamp-based component for the ID
+	std::time_t currentTime = std::time(nullptr);
+	std::tm* localTime = std::localtime(&currentTime);
+	std::stringstream timestampStream;
+	timestampStream << std::put_time(localTime, "%Y%m%d%H%M%S");
+
+	std::string uniqueID = "AP_" + timestampStream.str() + "_" + randomLetter;
+	return uniqueID;
 }
 
 int main(int argc, char* argv[])
@@ -49,7 +57,7 @@ int main(int argc, char* argv[])
 	SvrAddr.sin_addr.s_addr = inet_addr(ipAddress);	//IP address
 
 	std::string InputStr = "";
-	std::string uniqueID = receiveUniqueID(ClientSocket);
+	std::string uniqueID = generateUniqueID();
 	Packet newPkt;
 
 	std::ifstream f("Telem_2023_3_12 16_26_4.txt");
