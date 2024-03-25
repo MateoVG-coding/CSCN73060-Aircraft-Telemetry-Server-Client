@@ -40,7 +40,6 @@ public:
 
     void Display(std::ostream& os)
     {
-        os << std::dec;
         os << "Airplane ID:  " << Head.Source << std::endl;
         os << "Time:     " << TimeField << std::endl;
         os << "Remaining Fuel:     " << FuelField << std::endl;
