@@ -21,29 +21,11 @@ class Packet
 
 public:
     // Default constructor
-    Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head)); Head.Source = nullptr; }
-
-    // Function to get the plane ID, currentFuel and currentTime
-    char* getPlaneID() const {
-        return Head.Source;
-    }
-    const char* getCurrentFuel() const {
-        return FuelField;
-    }
-    const char* getCurrentTime() const {
-        return TimeField;
-    }
-    // Destructor to release memory
-    ~Packet() {
-        delete[] TimeField;
-        delete[] FuelField;
-        delete[] Head.Source;
-    }
+    Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head));  Head.Source = nullptr; }
 
     void Display(std::ostream& os)
     {
-        os << std::dec;
-        os << "Source:  " << (int)Head.Source << std::endl;
+        os << "Source:  " << Head.Source << std::endl;
         os << "Length Time:  " << (int)Head.TimeLength << std::endl;
         os << "Time:     " << TimeField << std::endl;
         os << "Length Fuel:  " << (int)Head.FuelLength << std::endl;
@@ -104,7 +86,7 @@ public:
         if (TxBuffer)
             delete[] TxBuffer;
 
-        TotalSize = EmptyPktSize + Head.TimeLength + Head.FuelLength;
+        TotalSize = sizeof(Header) + Head.TimeLength + Head.FuelLength;
 
         TxBuffer = new char[TotalSize];
 
