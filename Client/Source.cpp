@@ -36,6 +36,8 @@ int main(int argc, char* argv[])
 
 	char* ipAddress = argv[1];
 
+	std::cout << "The client is looking for a server...";
+
 	//starts Winsock DLLs
 	WSADATA wsaData;
 	if ((WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0) {
@@ -55,6 +57,8 @@ int main(int argc, char* argv[])
 	SvrAddr.sin_family = AF_INET;						//Address family type itnernet
 	SvrAddr.sin_port = htons(27000);					//port (host to network conversion)
 	SvrAddr.sin_addr.s_addr = inet_addr(ipAddress);	//IP address
+
+	std::cout << "The client has connected to a server.";
 
 	std::string InputStr = "";
 	std::string uniqueID = generateUniqueID();
@@ -84,6 +88,8 @@ int main(int argc, char* argv[])
 
 	closesocket(ClientSocket);
 	WSACleanup();
+
+	std::cout << "The client has closed the connection with the server.";
 
 	system("pause");
 
