@@ -3,8 +3,6 @@
 #include <iostream>
 #include <fstream>
 
-const int EmptyPktSize = 6; //Number of data bytes in a packet with no data field
-
 class Packet
 {
     struct Header
@@ -21,14 +19,30 @@ class Packet
 
 public:
     // Default constructor
-    Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head));  Head.Source = nullptr; }
+    Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head)); Head.Source = nullptr; }
+
+    // Function to get the plane ID, currentFuel and currentTime
+    char* getPlaneID() const {
+        return Head.Source;
+    }
+    const char* getCurrentFuel() const {
+        return FuelField;
+    }
+    const char* getCurrentTime() const {
+        return TimeField;
+    }
+    // Destructor to release memory
+    ~Packet() {
+        delete[] TimeField;
+        delete[] FuelField;
+        delete[] Head.Source;
+    }
 
     void Display(std::ostream& os)
     {
-        os << "Source:  " << Head.Source << std::endl;
-        os << "Length Time:  " << (int)Head.TimeLength << std::endl;
+        os << std::dec;
+        os << "Airplane ID:  " << Head.Source << std::endl;
         os << "Time:     " << TimeField << std::endl;
-        os << "Length Fuel:  " << (int)Head.FuelLength << std::endl;
         os << "Remaining Fuel:     " << FuelField << std::endl;
     }
 

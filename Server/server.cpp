@@ -38,14 +38,6 @@ std::chrono::system_clock::time_point parseTimestamp(const std::string& timestam
 
 void handleClient(SOCKET clientSocket) {
 
-    std::string uniqueID = generateUniqueID();
-
-    // Send the unique ID to the client
-    int bytesSent = send(clientSocket, uniqueID.c_str(), uniqueID.length(), 0);
-    if (bytesSent == SOCKET_ERROR) {
-        std::cerr << "Failed to send unique ID to client" << std::endl;
-    }
-
     char buffer[1024];
     int bytesReceived;
 
@@ -108,21 +100,4 @@ float calculateFuelConsumption(char* previousFuel, char* currentFuel, float elap
     float fuelConsumptionRate = (previousFuelLevel - currentFuelLevel) / elapsedTime;
 
     return fuelConsumptionRate;
-}
-
-
-// Function to generate a unique ID for the client
-std::string generateUniqueID() {
-    // Generate a random uppercase letter
-    char randomLetter = 'A' + rand() % 26;
-
-    // Generate a timestamp-based component for the ID
-    std::time_t currentTime = std::time(nullptr);
-    std::tm* localTime = std::localtime(&currentTime);
-    std::stringstream timestampStream;
-    timestampStream << std::put_time(localTime, "%Y%m%d%H%M%S");
-
-    // Combine the timestamp and random letter to form the final unique ID
-    std::string uniqueID = "AP_" + timestampStream.str() + "_" + randomLetter;
-    return uniqueID;
 }
