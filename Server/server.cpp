@@ -36,15 +36,21 @@ std::chrono::system_clock::time_point parseTimestamp(const std::string& timestam
     return std::chrono::system_clock::from_time_t(time);
 }
 
-void handleClient(SOCKET ServerSocket) {
-
-    char RxBuffer[128] = {};	
+void handleClient(SOCKET ConnectionSocket) 
+{
     sockaddr_in CltAddr;					//Client Address for sending responses
     int len = sizeof(struct sockaddr_in);	//Length parameter for the recvfrom function call
 
     while (1)
     {
-        recvfrom(ServerSocket, RxBuffer, sizeof(RxBuffer), 0, (struct sockaddr*)&CltAddr, &len);
+        char RxBuffer[128] = {};
+
+        int bytesReceived = recvfrom(ConnectionSocket, RxBuffer, sizeof(RxBuffer), 0, (struct sockaddr*)&CltAddr, &len);
+
+        if (bytesReceived == SOCKET_ERROR || bytesReceived == 0) {
+            // Error or client disconnected, break out of the loop
+            break;
+        }
 
         // Deserialize received data into a Packet object
         Packet receivedPacket(RxBuffer);
@@ -52,6 +58,9 @@ void handleClient(SOCKET ServerSocket) {
         // Display the contents of the received packet
         std::cout << "Received from client:" << std::endl;
         receivedPacket.Display(std::cout);
+
+        // Send confirmation to the client
+        send(ConnectionSocket, "OK", sizeof("OK"), 0);
 
         // Convert plane ID to string (for string)
         std::string planeIDString = receivedPacket.getPlaneID();
@@ -86,9 +95,12 @@ void handleClient(SOCKET ServerSocket) {
 
         // Update previous data for the next calculation
         previousData[planeIDString] = std::make_pair(currentFuel, currentTime);
+
     } 
 
-    closesocket(ServerSocket);
+    std::cout << "Connection Closed\n" << std::endl;
+
+    closesocket(ConnectionSocket);
 }
 
 float calculateFuelConsumption(char* previousFuel, char* currentFuel, float elapsedTime)

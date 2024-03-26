@@ -1,43 +1,56 @@
 #include "server.h"
 
 int main() {
-	//starts Winsock DLLs		
-	WSADATA wsaData;
-	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
-		return -1;
+    WSADATA wsaData;
+    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+        return -1;
 
-	//create server socket
-	SOCKET ServerSocket;
-	ServerSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-	if (ServerSocket == INVALID_SOCKET) {
-		WSACleanup();
-		return -1;
-	}
+    SOCKET ServerSocket;
+    ServerSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (ServerSocket == INVALID_SOCKET) {
+        WSACleanup();
+        return -1;
+    }
 
-	//binds socket to address
-	sockaddr_in SvrAddr;
-	SvrAddr.sin_family = AF_INET;
-	SvrAddr.sin_addr.s_addr = INADDR_ANY;
-	SvrAddr.sin_port = htons(27000);
-	if (bind(ServerSocket, (struct sockaddr*)&SvrAddr, sizeof(SvrAddr)) == SOCKET_ERROR)
-	{
-		closesocket(ServerSocket);
-		WSACleanup();
-		return -1;
-	}
+    sockaddr_in SvrAddr;
+    SvrAddr.sin_family = AF_INET;
+    SvrAddr.sin_addr.s_addr = INADDR_ANY;
+    SvrAddr.sin_port = htons(27000);
+    if (bind(ServerSocket, (struct sockaddr*)&SvrAddr, sizeof(SvrAddr)) == SOCKET_ERROR) {
+        closesocket(ServerSocket);
+        WSACleanup();
+        return -1;
+    }
 
-    std::cout << "Server listening on port 27000...\n";
+    if (listen(ServerSocket, SOMAXCONN) == SOCKET_ERROR) {
+        closesocket(ServerSocket);
+        WSACleanup();
+        return -1;
+    }
 
-    std::vector<std::thread> threads;
+    std::cout << "Server listening on port 27000\n";
+
+    std::cout << "Waiting for client connection...\n" << std::endl;
 
     while (true) {
+        // Accept incoming connection
+        SOCKET ConnectionSocket = accept(ServerSocket, NULL, NULL);
+        if (ConnectionSocket == INVALID_SOCKET) {
+            std::cerr << "accept() failed with error: " << WSAGetLastError() << std::endl;
+            closesocket(ServerSocket);
+            WSACleanup();
+            return -1;
+        }
+
+        std::cout << "Connection Established\n" << std::endl;
 
         // Create a thread to handle the client
-        threads.emplace_back(handleClient, ServerSocket);
+        std::thread clientThread(handleClient, ConnectionSocket);
+        clientThread.detach();
     }
 
     // Close the listening socket
-    closesocket(ServerSocket);
+    closesocket(ServerSocket);	
     WSACleanup();
 
     return 0;

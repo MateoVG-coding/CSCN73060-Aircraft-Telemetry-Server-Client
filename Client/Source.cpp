@@ -36,60 +36,73 @@ int main(int argc, char* argv[])
 
 	char* ipAddress = argv[1];
 
-	std::cout << "The client is looking for a server...";
+	std::cout << "The client is looking for a server...\n";
 
-	//starts Winsock DLLs
 	WSADATA wsaData;
 	if ((WSAStartup(MAKEWORD(2, 2), &wsaData)) != 0) {
 		return -1;
 	}
 
-	//initializes socket. SOCK_STREAM: TCP
 	SOCKET ClientSocket;
-	ClientSocket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
+	ClientSocket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	if (ClientSocket == INVALID_SOCKET) {
 		WSACleanup();
 		return -1;
 	}
 
-	//Connect socket to specified server
 	sockaddr_in SvrAddr;
-	SvrAddr.sin_family = AF_INET;						//Address family type itnernet
-	SvrAddr.sin_port = htons(27000);					//port (host to network conversion)
-	SvrAddr.sin_addr.s_addr = inet_addr(ipAddress);	//IP address
+	SvrAddr.sin_family = AF_INET;
+	SvrAddr.sin_port = htons(27000);
+	SvrAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
 
-	std::cout << "The client has connected to a server.";
+	if (connect(ClientSocket, (sockaddr*)&SvrAddr, sizeof(SvrAddr)) == SOCKET_ERROR) {
+		std::cerr << "Unable to connect to server." << std::endl;
+		closesocket(ClientSocket);
+		WSACleanup();
+		return -1;
+	}
+
+	std::cout << "Connected to server.\n";
+
+	// Read telemetry data from file and send to server
+	std::ifstream f("Telem_2023_3_12 16_26_4.txt");
+	if (!f.is_open()) {
+		std::cerr << "Failed to open telemetry file." << std::endl;
+		closesocket(ClientSocket);
+		WSACleanup();
+		return -1;
+	}
 
 	std::string InputStr = "";
 	std::string uniqueID = generateUniqueID();
 	Packet newPkt;
 
-	std::ifstream f("Telem_2023_3_12 16_26_4.txt");
-	if (f.is_open())
+	while (std::getline(f, InputStr))
 	{
-		while (std::getline(f, InputStr))
-		{
-			size_t pos = InputStr.find(',');
+		size_t pos = InputStr.find(',');
 
-			std::string timeData = InputStr.substr(0, pos);
-			std::string fuelData = InputStr.substr(pos + 1, InputStr.length() - pos - 3);
+		std::string timeData = InputStr.substr(0, pos);
+		std::string fuelData = InputStr.substr(pos + 1, InputStr.length() - pos - 3);
 
-			// Set id,time, fuel data for the packet
-			newPkt.SetData((char*)timeData.c_str(), (char*)fuelData.c_str(), (char*)uniqueID.c_str(), timeData.length(), fuelData.length(), uniqueID.length());
+		// Set id,time, fuel data for the packet
+		newPkt.SetData((char*)timeData.c_str(), (char*)fuelData.c_str(), (char*)uniqueID.c_str(), timeData.length(), fuelData.length(), uniqueID.length());
 
-			int Size = 0;
-			char* Tx = newPkt.SerializeData(Size);
+		int Size = 0;
+		char* Tx = newPkt.SerializeData(Size);
 
-			sendto(ClientSocket, Tx, Size, 0, (sockaddr*)&SvrAddr, sizeof(sockaddr_in));
-		}
+		sendto(ClientSocket, Tx, Size, 0, (sockaddr*)&SvrAddr, sizeof(sockaddr_in));
 
-		f.close();
+		//Receive confirmation from server
+		char resp[2];
+		recv(ClientSocket, (char*)resp, sizeof(resp), 0);
 	}
+
+	f.close();
 
 	closesocket(ClientSocket);
 	WSACleanup();
 
-	std::cout << "The client has closed the connection with the server.";
+	std::cout << "The client has closed the connection with the server\n.";
 
 	system("pause");
 

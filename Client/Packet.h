@@ -7,11 +7,12 @@ class Packet
 {
     struct Header
     {
-        char* Source; //Airplane ID
+        unsigned char PlaneIDLength;
         unsigned char TimeLength;
         unsigned char FuelLength;
     } Head;
 
+    char* PlaneID;
     char* TimeField;
     char* FuelField;
 
@@ -19,11 +20,13 @@ class Packet
 
 public:
     // Default constructor
-    Packet() : TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) { memset(&Head, 0, sizeof(Head)); Head.Source = nullptr; }
+    Packet() : PlaneID(nullptr), TimeField(nullptr), FuelField(nullptr), TxBuffer(nullptr) {
+        memset(&Head, 0, sizeof(Head));
+    }
 
     // Function to get the plane ID, currentFuel and currentTime
     char* getPlaneID() const {
-        return Head.Source;
+        return PlaneID;
     }
     const char* getCurrentFuel() const {
         return FuelField;
@@ -35,12 +38,12 @@ public:
     ~Packet() {
         delete[] TimeField;
         delete[] FuelField;
-        delete[] Head.Source;
+        delete[] PlaneID;
     }
 
     void Display(std::ostream& os)
     {
-        os << "Airplane ID:  " << Head.Source << std::endl;
+        os << "Airplane ID:  " << PlaneID << std::endl;
         os << "Time:     " << TimeField << std::endl;
         os << "Remaining Fuel:     " << FuelField << std::endl;
     }
@@ -52,44 +55,49 @@ public:
         memcpy(&Head, src, sizeof(Header));
         int timeSize = Head.TimeLength;
         int fuelSize = Head.FuelLength;
+        int sourceSize = Head.PlaneIDLength;
 
-        // Allocate memory for time and fuel fields
+        // Allocate memory for source, time, and fuel fields
+        PlaneID = new char[sourceSize + 1];
         TimeField = new char[timeSize + 1];
         FuelField = new char[fuelSize + 1];
 
+        PlaneID[sourceSize] = '\0';
         TimeField[timeSize] = '\0';
         FuelField[fuelSize] = '\0';
 
-        // Deserialize time and fuel fields
-        memcpy(TimeField, src + sizeof(Header), timeSize);
-        memcpy(FuelField, src + sizeof(Header) + timeSize, fuelSize);
+        // Deserialize source, time, and fuel fields
+        memcpy(PlaneID, src + sizeof(Header), sourceSize);
+        memcpy(TimeField, src + sizeof(Header) + sourceSize, timeSize);
+        memcpy(FuelField, src + sizeof(Header) + sourceSize + timeSize, fuelSize);
     }
 
     // Method to set data and update header
     void SetData(char* srcTime, char* srcFuel, char* srcId, int timeSize, int fuelSize, int idSize)
     {
-        if (TimeField || FuelField || Head.Source)
+        if (PlaneID || TimeField || FuelField)
         {
+            delete[] PlaneID;
             delete[] TimeField;
             delete[] FuelField;
-            delete[] Head.Source;
         }
 
         // Update header
+        Head.PlaneIDLength = idSize;
         Head.TimeLength = timeSize;
         Head.FuelLength = fuelSize;
 
-        // Allocate memory for id, time and fuel fields
-        Head.Source = new char[idSize + 1];
+        // Allocate memory for source, time, and fuel fields
+        PlaneID = new char[idSize + 1];
         TimeField = new char[timeSize + 1];
         FuelField = new char[fuelSize + 1];
 
-        Head.Source[idSize] = '\0';
+        PlaneID[idSize] = '\0';
         TimeField[timeSize] = '\0';
         FuelField[fuelSize] = '\0';
 
         // Copy data from source buffers
-        memcpy(Head.Source, srcId, idSize);
+        memcpy(PlaneID, srcId, idSize);
         memcpy(TimeField, srcTime, timeSize);
         memcpy(FuelField, srcFuel, fuelSize);
     }
@@ -99,17 +107,17 @@ public:
         if (TxBuffer)
             delete[] TxBuffer;
 
-        TotalSize = sizeof(Header) + Head.TimeLength + Head.FuelLength;
+        TotalSize = sizeof(Header) + Head.PlaneIDLength + Head.TimeLength + Head.FuelLength;
 
         TxBuffer = new char[TotalSize];
 
+        // Serialize header
         memcpy(TxBuffer, &Head, sizeof(Header));
 
-        // Serialize time field
-        memcpy(TxBuffer + sizeof(Header), TimeField, Head.TimeLength);
-
-        // Serialize fuel field
-        memcpy(TxBuffer + sizeof(Header) + Head.TimeLength, FuelField, Head.FuelLength);
+        // Serialize source, time, and fuel fields
+        memcpy(TxBuffer + sizeof(Header), PlaneID, Head.PlaneIDLength);
+        memcpy(TxBuffer + sizeof(Header) + Head.PlaneIDLength, TimeField, Head.TimeLength);
+        memcpy(TxBuffer + sizeof(Header) + Head.PlaneIDLength + Head.TimeLength, FuelField, Head.FuelLength);
 
         return TxBuffer;
     };
