@@ -107,7 +107,5 @@ int main(int argc, char* argv[])
 
 	std::cout << "The client has closed the connection with the server\n.";
 
-	system("pause");
-
 	return 1;
 }
