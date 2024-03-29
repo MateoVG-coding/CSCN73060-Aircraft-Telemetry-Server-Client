@@ -53,7 +53,7 @@ int main(int argc, char* argv[])
 	sockaddr_in SvrAddr;
 	SvrAddr.sin_family = AF_INET;
 	SvrAddr.sin_port = htons(27000);
-	SvrAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
+	SvrAddr.sin_addr.s_addr = inet_addr(ipAddress);
 
 	if (connect(ClientSocket, (sockaddr*)&SvrAddr, sizeof(SvrAddr)) == SOCKET_ERROR) {
 		std::cerr << "Unable to connect to server." << std::endl;
@@ -76,6 +76,7 @@ int main(int argc, char* argv[])
 	std::string InputStr = "";
 	std::string uniqueID = generateUniqueID();
 	Packet newPkt;
+	int packetnum = 0;
 
 	while (std::getline(f, InputStr))
 	{
@@ -91,6 +92,8 @@ int main(int argc, char* argv[])
 		char* Tx = newPkt.SerializeData(Size);
 
 		sendto(ClientSocket, Tx, Size, 0, (sockaddr*)&SvrAddr, sizeof(sockaddr_in));
+
+		packetnum++;
 
 		//Receive confirmation from server
 		char resp[2];

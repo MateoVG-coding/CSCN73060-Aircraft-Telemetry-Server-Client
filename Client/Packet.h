@@ -36,16 +36,16 @@ public:
     }
     // Destructor to release memory
     ~Packet() {
+        delete[] PlaneID;
         delete[] TimeField;
         delete[] FuelField;
-        delete[] PlaneID;
     }
 
     void Display(std::ostream& os)
     {
         os << "Airplane ID:  " << PlaneID << std::endl;
         os << "Time:     " << TimeField << std::endl;
-        os << "Remaining Fuel:     " << FuelField << std::endl;
+        os << "Remaining Fuel:     " << FuelField << std::endl <<std::endl;
     }
 
     // Constructor to initialize TxBuffer and deserialize raw data
@@ -53,9 +53,9 @@ public:
     {
         // Deserialize header
         memcpy(&Head, src, sizeof(Header));
+        int sourceSize = Head.PlaneIDLength;
         int timeSize = Head.TimeLength;
         int fuelSize = Head.FuelLength;
-        int sourceSize = Head.PlaneIDLength;
 
         // Allocate memory for source, time, and fuel fields
         PlaneID = new char[sourceSize + 1];

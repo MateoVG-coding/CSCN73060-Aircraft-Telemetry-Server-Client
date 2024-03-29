@@ -32,6 +32,8 @@ int main() {
 
     std::cout << "Waiting for client connection...\n" << std::endl;
 
+    std::vector<std::thread> clientThreads;
+
     while (true) {
         // Accept incoming connection
         SOCKET ConnectionSocket = accept(ServerSocket, NULL, NULL);
@@ -46,7 +48,12 @@ int main() {
 
         // Create a thread to handle the client
         std::thread clientThread(handleClient, ConnectionSocket);
-        clientThread.detach();
+        clientThreads.push_back(std::move(clientThread));
+    }
+
+    // Join all client threads before exiting
+    for (auto& thread : clientThreads) {
+        thread.join();
     }
 
     // Close the listening socket
