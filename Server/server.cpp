@@ -144,6 +144,8 @@ void handleClient(SOCKET ConnectionSocket)
         }
     } while (bytesReceived > 0);
 
+    writePlaneData(planeDataMap);
+
     std::cout << "Connection Closed\n" << std::endl;
 
     closesocket(ConnectionSocket);
