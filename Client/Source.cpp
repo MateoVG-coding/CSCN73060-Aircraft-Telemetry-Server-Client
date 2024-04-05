@@ -11,11 +11,14 @@
 #include <cstdlib>
 #include <sstream>
 #include <iomanip>
+#include <random>
 
 // Function to generate a unique ID for the client
 std::string generateUniqueID() {
-	// Generate a random uppercase letter
-	char randomLetter = 'A' + rand() % 26;
+	std::random_device rd;
+	std::mt19937 gen(rd());
+	std::uniform_int_distribution<> dis('A', 'Z');
+	char randomLetter = dis(gen);
 
 	// Generate a timestamp-based component for the ID
 	std::time_t currentTime = std::time(nullptr);
