@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <iostream>
+#include <sstream> 
 #include <fstream>
 
 class Packet
@@ -43,9 +44,13 @@ public:
 
     void Display(std::ostream& os)
     {
-        os << "Airplane ID:  " << PlaneID << std::endl;
-        os << "Time:     " << TimeField << std::endl;
-        os << "Remaining Fuel:     " << FuelField << std::endl <<std::endl;
+        std::stringstream output;
+
+        output << "Airplane ID:  " << PlaneID << std::endl;
+        output << "Time:     " << TimeField << std::endl;
+        output << "Remaining Fuel:     " << FuelField << std::endl << std::endl;
+
+        os << output.str();
     }
 
     // Constructor to initialize TxBuffer and deserialize raw data
